@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'user_api.dart';
-import 'user_bloc.dart';
-import 'user_event.dart';
+import 'user_cubit.dart';
 import 'user_state.dart';
 
 void main() {
   runApp(
     BlocProvider(
-      create: (context) => UserBloc(UserApi())..add(GetUsers()),
+      create: (context) => UserCubit(UserApi())..getUsers(),
       child: MyApp(),
     ),
   );
@@ -20,7 +19,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: UserPage());
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Cubit Demo',
+      home: UserPage(),
+    );
   }
 }
 
@@ -30,8 +33,12 @@ class UserPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Users')),
-      body: BlocBuilder<UserBloc, UserState>(
+      appBar: AppBar(
+        title: Text('Users'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ),
+      body: BlocBuilder<UserCubit, UserState>(
         builder: (context, state) {
           if (state is UserLoading) {
             return Center(child: CircularProgressIndicator());
@@ -53,7 +60,23 @@ class UserPage extends StatelessWidget {
           }
 
           if (state is UserError) {
-            return Center(child: Text(state.message));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.wifi_off, size: 60, color: Colors.red),
+                  SizedBox(height: 16),
+                  Text(state.message, style: TextStyle(fontSize: 16)),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<UserCubit>().getUsers();
+                    },
+                    child: Text('reload'),
+                  ),
+                ],
+              ),
+            );
           }
 
           return SizedBox();
